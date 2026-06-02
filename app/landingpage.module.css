@@ -1,0 +1,183 @@
+:global(:root) {
+            --bg-color: #a3c5a8;         /* The sage green background */
+            --card-bg: #b5ceba;          /* Slightly lighter green for the login card */
+            --border-color: #333333;      /* Crisp dark borders */
+            --accent-red: #ff4a4a;        /* Vibrant red for branding/buttons */
+            --link-blue: #2b70c9;         /* Blue for links */
+            --input-bg: #e1e9e3;          /* Soft light gray-green for inputs */
+        }
+
+        :global(*) {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :global(body) {
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- Main Container --- */
+        .login-container {
+            text-align: center;
+            max-width: 550px;
+            width: 100%;
+        }
+
+        /* --- Header / Branding --- */
+        .brand-logo {
+            font-family: 'Caveat', cursive;
+            font-size: 3.5rem;
+            color: var(--accent-red);
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+        }
+
+        .brand-tagline {
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+
+        /* --- The Box / Card --- */
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            padding: 40px 30px 25px 30px;
+            width: 100%;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15); /* Retro soft shadow */
+        }
+
+        .card-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            color: #000;
+            margin-bottom: 25px;
+        }
+
+        /* --- Form Inputs --- */
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            color: #444;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: #8fa394;
+        }
+
+        .form-input:focus {
+            border-color: var(--border-color);
+            background-color: #fff;
+        }
+
+        select.form-input {
+            appearance: none; /* Removes default browser styling for select arrow */
+            cursor: pointer;
+        }
+
+        /* Custom dropdown arrow to match your UI */
+        .select-wrapper::after {
+            content: '▲\A▼';
+            font-size: 0.65rem;
+            line-height: 0.8;
+            font-family: monospace;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #555;
+        }
+
+        /* --- Links & Buttons --- */
+        .forgot-password {
+            display: inline-block;
+            font-size: 0.85rem;
+            color: var(--link-blue);
+            text-decoration: none;
+            margin: 5px 0 20px 0;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .submit-btn {
+            width: 80%;
+            max-width: 220px;
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0px 3px 0px #c72c2c;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .submit-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        /* --- Role Toggles --- */
+        .role-toggles {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+        }
+
+        .role-link {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 2px;
+        }
+
+        .role-link:hover {
+            border-color: var(--border-color);
+        }
+
+        /* --- Sign Up Footer --- */
+        .signup-footer {
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: #222;
+        }
+
+        .signup-link {
+            color: var(--accent-red);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .signup-link:hover {
+            text-decoration: underline;
+        }

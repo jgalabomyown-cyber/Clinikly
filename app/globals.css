@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-logo: var(--font-island);
 }
 
 @theme inline {
@@ -24,3 +25,24 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Simple button animation used on signup page */
+@keyframes signup-flip-reverse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.03) rotateX(180deg);
+    filter: brightness(1.15);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.animate-signup-flip-reverse {
+  animation: signup-flip-reverse 220ms ease-out;
+}
+
