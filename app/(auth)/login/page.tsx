@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import Toast from '../../../components/Toast';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -20,8 +21,15 @@ export default function LoginPage() {
     return 'Login (Staff)';
   }, [isDoctor, isUser]);
 
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   const handleLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      setToast({ type: 'error', message: 'Email and password are required' });
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,17 +37,25 @@ export default function LoginPage() {
     });
 
     if (error) {
-      console.log(error.message);
+      setToast({ type: 'error', message: error.message ?? 'Login failed' });
       return;
     }
 
-    console.log('Logged in');
+    setToast({ type: 'success', message: 'Logged in successfully' });
   };
 
 
   return (
 
     <main className="min-h-screen bg-[#A8C7A8]">
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          duration={5000}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="flex flex-col min-h-screen items-center justify-center">
         <h1
           className="text-[#FF383C] text-5xl font-bold"

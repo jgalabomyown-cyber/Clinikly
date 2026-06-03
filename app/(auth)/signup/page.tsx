@@ -1,5 +1,6 @@
-'use client';
+"use client";
 import { useMemo, useState } from 'react';
+import Toast from '../../../components/Toast';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -24,6 +25,8 @@ export default function SignupPage() {
   const isUser = role === 'user';
   const isStaff = role === 'staff';
 
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   const submitLabel = useMemo(() => {
     if (isDoctor) return 'Sign up (Doctor)';
     if (isUser) return 'Sign up (User)';
@@ -39,7 +42,7 @@ export default function SignupPage() {
     const password = form.password;
 
     if (!email || !password) {
-      console.log('Missing email or password');
+      setToast({ type: 'error', message: 'Missing email or password' });
       return;
     }
 
@@ -49,7 +52,7 @@ export default function SignupPage() {
     });
 
     if (error) {
-      console.log(error.message);
+      setToast({ type: 'error', message: error.message ?? 'Signup error' });
       return;
     }
 
@@ -80,10 +83,19 @@ export default function SignupPage() {
     }
 
     console.log('User created');
+    setToast({ type: 'success', message: 'Account created successfully' });
   };
 
   return (
     <main className="min-h-screen bg-[#A8C7A8]">
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          duration={5000}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="flex flex-col min-h-screen items-center justify-center">
         <h1
           className="text-[#FF383C] text-5xl font-bold"
