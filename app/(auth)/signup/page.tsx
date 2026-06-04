@@ -4,13 +4,16 @@ import Toast from '../../../components/Toast';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
-type Role = 'doctor' | 'user' | 'staff';
+type Role = 'doctor' | 'user';
 
 type FieldValues = {
-  medical_learning_number?: string;
+  medical_license_number?: string;
   specialty?: string;
   email?: string;
-  staff_number?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  birth_date?: string;
   password?: string;
   confirmPassword?: string;
 };
@@ -23,32 +26,70 @@ export default function SignupPage() {
 
   const isDoctor = role === 'doctor';
   const isUser = role === 'user';
-  const isStaff = role === 'staff';
 
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const submitLabel = useMemo(() => {
     if (isDoctor) return 'Sign up (Doctor)';
-    if (isUser) return 'Sign up (User)';
-    return 'Sign up (Staff)';
-  }, [isDoctor, isUser]);
+    return 'Sign up (User)';
+  }, [isDoctor]);
 
   const handleSubmitClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     setAnimPulse(true);
     window.setTimeout(() => setAnimPulse(false), 220);
 
-    const email = form.email;
+    const email = form.email?.trim();
     const password = form.password;
+    const confirmPassword = form.confirmPassword;
+    const first_name = form.first_name?.trim();
+    const last_name = form.last_name?.trim();
+    const phone = form.phone?.trim();
+    const birth_date = form.birth_date;
+    const specialty = form.specialty?.trim();
+    const medical_license_number = form.medical_license_number?.trim();
 
-    if (!email || !password) {
-      setToast({ type: 'error', message: 'Missing email or password' });
+    const missingFields: string[] = [];
+    if (!first_name) missingFields.push('first name');
+    if (!last_name) missingFields.push('last name');
+    if (!phone) missingFields.push('phone');
+    if (!birth_date) missingFields.push('birth date');
+    if (!email) missingFields.push('email');
+    if (!password) missingFields.push('password');
+    if (!confirmPassword) missingFields.push('confirm password');
+
+    if (role === 'doctor') {
+      if (!specialty) missingFields.push('specialty');
+      if (!medical_license_number) missingFields.push('medical license number');
+    }
+
+    if (missingFields.length > 0) {
+      setToast({
+        type: 'error',
+        message: `Please fill all fields: ${missingFields.join(', ')}`,
+      });
       return;
     }
 
-    const { data:authData, error } = await supabase.auth.signUp({
-      email,
-      password,
+    if (password !== confirmPassword) {
+      setToast({ type: 'error', message: 'Passwords do not match' });
+      return;
+    }
+
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: email!,
+      password: password!,
+      options: {
+        data: {
+          role,
+          first_name,
+          last_name,
+          phone,
+          birth_date,
+          specialty,
+          medical_license_number,
+        },
+      },
     });
 
     if (error) {
@@ -57,33 +98,15 @@ export default function SignupPage() {
     }
 
     const userId = authData?.user?.id;
-    const session = authData?.session;
-
     if (!userId) {
       console.log('User created but no id returned');
       return;
     }
 
-    // If signup returns a session (user is authenticated client-side), we can
-    // safely insert a patients row from the client. If signup requires email
-    // confirmation, `session` will be null and the client insert will be denied
-    // by RLS. In that case rely on the DB trigger or a server API to create the
-    // patients row.
-    if (isUser) {
-      if (!session) {
-        console.log('Signup requires email confirmation — patient creation deferred until confirmation.');
-      } else {
-        const { error: insertError } = await supabase.from('patients').insert([{ id: userId }]);
-        if (insertError) {
-          console.log('Error creating patient row:', insertError.message);
-        } else {
-          console.log('Patient row created');
-        }
-      }
-    }
-
+    // Profile rows are created/updated by the auth trigger after user signup.
+    // Patient rows are also created/updated by the auth trigger for role = 'user'.
     console.log('User created');
-    setToast({ type: 'success', message: 'Account created successfully' });
+    setToast({ type: 'success', message: 'Email confirmation sent, please check your email' });
   };
 
   return (
@@ -142,37 +165,76 @@ export default function SignupPage() {
               User
             </button>
 
-            <button
-              type="button"
-              onClick={() => setRole('staff')}
-              className={`px-4 py-2 rounded-3xl transition-all duration-300 ease-in-out border border-black w-24
-                ${
-                  role === 'staff'
-                    ? 'bg-white text-black scale-105 w-60'
-                    : 'bg-black text-white hover:scale-105'
-                }`}
-            >
-              Staff
-            </button>
           </div>
 
           {/* Doctor form */}
           {isDoctor && (
             <>
-              <label
-                htmlFor="medical_learning_number"
-                className="text-gray-700 mt-6"
-              >
-                Medical Learning Number:
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 mt-6">
+                <div className="flex flex-col">
+                  <label htmlFor="first_name" className="text-gray-700">
+                    First name:
+                  </label>
+                  <input
+                    className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                    type="text"
+                    id="first_name"
+                    placeholder="First name"
+                    value={form.first_name ?? ''}
+                    onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label htmlFor="last_name" className="text-gray-700">
+                    Last name:
+                  </label>
+                  <input
+                    className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                    type="text"
+                    id="last_name"
+                    placeholder="Last name"
+                    value={form.last_name ?? ''}
+                    onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <label htmlFor="email" className="text-gray-700 mt-3">
+                Email:
+              </label>
+              <input
+                className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                type="email"
+                id="email"
+                placeholder="you@example.com"
+                value={form.email ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              />
+
+              <label htmlFor="phone" className="text-gray-700 mt-3">
+                Phone:
+              </label>
+              <input
+                className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                type="tel"
+                id="phone"
+                placeholder="07XXXXXXXX"
+                value={form.phone ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+              />
+
+              <label htmlFor="medical_license_number" className="text-gray-700 mt-3">
+                Medical License Number:
               </label>
               <input
                 className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700"
                 type="text"
-                id="medical_learning_number"
-                placeholder="01-222-344"
-                value={form.medical_learning_number ?? ''}
+                id="medical_license_number"
+                placeholder="654321"
+                value={form.medical_license_number ?? ''}
                 onChange={(e) =>
-                  setForm((p) => ({ ...p, medical_learning_number: e.target.value }))
+                  setForm((p) => ({ ...p, medical_license_number: e.target.value }))
                 }
               />
 
@@ -236,7 +298,60 @@ export default function SignupPage() {
           {/* User form */}
           {isUser && (
             <>
-              <label htmlFor="email" className="text-gray-700 mt-6">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 mt-6">
+                <div className="flex flex-col">
+                  <label htmlFor="first_name" className="text-gray-700">
+                    First name:
+                  </label>
+                  <input
+                    className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                    type="text"
+                    id="first_name"
+                    placeholder="First name"
+                    value={form.first_name ?? ''}
+                    onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label htmlFor="last_name" className="text-gray-700">
+                    Last name:
+                  </label>
+                  <input
+                    className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                    type="text"
+                    id="last_name"
+                    placeholder="Last name"
+                    value={form.last_name ?? ''}
+                    onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <label htmlFor="phone" className="text-gray-700 mt-3">
+                Phone:
+              </label>
+              <input
+                className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                type="tel"
+                id="phone"
+                placeholder="07XXXXXXXX"
+                value={form.phone ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+              />
+
+              <label htmlFor="birth_date" className="text-gray-700 mt-3">
+                Birth date:
+              </label>
+              <input
+                className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
+                type="date"
+                id="birth_date"
+                value={form.birth_date ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, birth_date: e.target.value }))}
+              />
+
+              <label htmlFor="email" className="text-gray-700 mt-3">
                 Email:
               </label>
               <input
@@ -250,22 +365,6 @@ export default function SignupPage() {
             </>
           )}
 
-          {/* Staff form */}
-          {isStaff && (
-            <>
-              <label htmlFor="staff_number" className="text-gray-700 mt-6">
-                Staff Number:
-              </label>
-              <input
-                className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
-                type="text"
-                id="staff_number"
-                placeholder="STAFF-001"
-                value={form.staff_number ?? ''}
-                onChange={(e) => setForm((p) => ({ ...p, staff_number: e.target.value }))}
-              />
-            </>
-          )}
 
           {/* Shared password */}
           <label htmlFor="password" className="text-gray-700 mt-3">

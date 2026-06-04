@@ -10,6 +10,9 @@ export default function LoginPage() {
   const [role, setRole] = useState<Role>('doctor');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [medicalLicenseNumber, setMedicalLicenseNumber] = useState('');
+  const [doctorSpecialty, setDoctorSpecialty] = useState('');
+  const [staffNumber, setStaffNumber] = useState('');
 
   const isDoctor = role === 'doctor';
   const isUser = role === 'user';
@@ -26,12 +29,51 @@ export default function LoginPage() {
   const handleLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
 
+    if (isDoctor) {
+      if (!medicalLicenseNumber || !doctorSpecialty || !password) {
+        setToast({
+          type: 'error',
+          message: 'Medical license number, specialty, and password are required',
+        });
+        return;
+      }
+
+      const response = await fetch('/api/doctor-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          medical_license_number: medicalLicenseNumber,
+          specialty: doctorSpecialty,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        setToast({
+          type: 'error',
+          message: result.error ?? 'Doctor login failed',
+        });
+        return;
+      }
+
+      const { session } = result;
+      const { error: setSessionError } = await supabase.auth.setSession(session);
+      if (setSessionError) {
+        setToast({ type: 'error', message: setSessionError.message ?? 'Failed to establish session' });
+        return;
+      }
+
+      setToast({ type: 'success', message: 'Logged in successfully' });
+      return;
+    }
+
     if (!email || !password) {
       setToast({ type: 'error', message: 'Email and password are required' });
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -128,6 +170,8 @@ export default function LoginPage() {
                 type="text"
                 id="medical_learning_number"
                 placeholder="01-222-344"
+                value={medicalLicenseNumber}
+                onChange={(e) => setMedicalLicenseNumber(e.target.value)}
               />
 
               <label htmlFor="specialty" className="text-gray-700 mt-3">
@@ -135,7 +179,8 @@ export default function LoginPage() {
               </label>
               <select
                 id="specialty"
-             
+                value={doctorSpecialty}
+                onChange={(e) => setDoctorSpecialty(e.target.value)}
                 className="bg-white text-gray-600 pl-3 pr-3 pt-2 pb-2 rounded-md border border-gray-300 outline-none transition-colors duration-200 focus:border-blue-700 focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select a specialty</option>
