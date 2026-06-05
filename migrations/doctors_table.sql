@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS public.doctors (
   first_name text,
   last_name text,
   phone text,
+  email varchar,
   created_at timestamptz DEFAULT now()
 );

@@ -81,6 +81,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const userRole = loginData.user?.user_metadata?.role;
+    if (userRole !== 'doctor') {
+      return NextResponse.json(
+        { error: 'This account is not registered as a doctor' },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({ session: loginData.session });
   } catch (error) {
     console.error('Doctor login error:', error);

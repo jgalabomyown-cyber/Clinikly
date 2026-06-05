@@ -20,6 +20,7 @@ BEGIN
     first_name,
     last_name,
     phone,
+    email,
     created_at
   )
   VALUES (
@@ -29,6 +30,7 @@ BEGIN
     NEW.raw_user_meta_data->>'first_name',
     NEW.raw_user_meta_data->>'last_name',
     NEW.raw_user_meta_data->>'phone',
+    NEW.raw_user_meta_data->>'email';
     now()
   )
   ON CONFLICT (id) DO UPDATE
@@ -38,7 +40,7 @@ BEGIN
     first_name = COALESCE(NULLIF(EXCLUDED.first_name, ''), public.doctors.first_name),
     last_name = COALESCE(NULLIF(EXCLUDED.last_name, ''), public.doctors.last_name),
     phone = COALESCE(NULLIF(EXCLUDED.phone, ''), public.doctors.phone);
-
+    email = COALESCE(NULLIF(EXCLUDED.email, ''), public.doctors.email);
   RETURN NEW;
 END;
 $$;

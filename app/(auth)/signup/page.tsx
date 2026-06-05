@@ -53,10 +53,14 @@ export default function SignupPage() {
     if (!first_name) missingFields.push('first name');
     if (!last_name) missingFields.push('last name');
     if (!phone) missingFields.push('phone');
-    if (!birth_date) missingFields.push('birth date');
     if (!email) missingFields.push('email');
     if (!password) missingFields.push('password');
     if (!confirmPassword) missingFields.push('confirm password');
+
+
+    if (role === 'user') {
+      if (!birth_date) missingFields.push('birth date');
+    }
 
     if (role === 'doctor') {
       if (!specialty) missingFields.push('specialty');

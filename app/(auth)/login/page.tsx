@@ -3,10 +3,12 @@ import { useMemo, useState } from 'react';
 import Toast from '../../../components/Toast';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation'
 
 type Role = 'doctor' | 'user' | 'staff';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [role, setRole] = useState<Role>('doctor');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,6 +67,7 @@ export default function LoginPage() {
       }
 
       setToast({ type: 'success', message: 'Logged in successfully' });
+      router.push('/doctor/dashboard');
       return;
     }
 
@@ -83,7 +86,18 @@ export default function LoginPage() {
       return;
     }
 
+    const userRole = data.user?.user_metadata?.role;
+    if (userRole !== 'user') {
+      await supabase.auth.signOut();
+      setToast({
+        type: 'error',
+        message: 'This account is not registered as a user. Please login with the correct role.',
+      });
+      return;
+    }
+
     setToast({ type: 'success', message: 'Logged in successfully' });
+    router.push('/patient/dashboard');
   };
 
 
@@ -282,13 +296,13 @@ export default function LoginPage() {
             Forgot Password?
           </a>
 
-          <Link
-            href="#"
-            onClick={handleLogin}
-            className="mt-6 bg-[#FF383C] self-center pl-7 pr-7 pt-2 pb-2 rounded-3xl cursor-pointer text-white hover:bg-white hover:text-[#FF383C] transition-colors"
-          >
-            {submitLabel}
-          </Link>
+        <button
+          type="button"
+          onClick={handleLogin}
+          className="mt-6 bg-[#FF383C] self-center pl-7 pr-7 pt-2 pb-2 rounded-3xl cursor-pointer text-white hover:bg-white hover:text-[#FF383C] transition-colors"
+        >
+          {submitLabel}
+        </button>
 
         </div>
 
